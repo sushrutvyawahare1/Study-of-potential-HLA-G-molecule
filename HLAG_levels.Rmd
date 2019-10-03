@@ -1,0 +1,294 @@
+---
+title: "Analysis of sHLA-G levels"
+author: "Sushrut Vyawahare"
+date: "7 August 2019"
+output: html_document
+---
+
+### Loading Libraries
+```{r}
+library(dplyr)
+library(lme4)
+library(ggplot2)
+library(ggpubr)
+library(gamlss)
+
+```
+
+### Loading AGA Data
+```{r}
+AGA <- read.csv("C:/Users/DELL/Downloads/AGA1.csv")
+head(AGA)
+AGA$Group <- "AGA"
+
+```
+
+```{r}
+names(AGA) <- c("Enrid","POG","SHLA.G.levels","Vist","Group")
+head(AGA)
+
+```
+
+### EDA Process For AGA
+
+#### Missing values
+```{r}
+sum(is.na(AGA))
+AGA <- na.omit(AGA)
+
+```
+
+#### Removing outliers
+```{r}
+boxplot(AGA$SHLA.G.levels)
+boxplot(AGA$SHLA.G.levels)$out
+boxplot(AGA$SHLA.G.levels, plot=FALSE)$out  
+outliers <- boxplot(AGA$SHLA.G.levels, plot=FALSE)$out  
+AGA[which(AGA$SHLA.G.levels %in% outliers),]
+AGA <- AGA[-which(AGA$SHLA.G.levels %in% outliers),]
+
+```
+
+#### Boxplot after removing outliers
+```{r}
+boxplot(AGA$SHLA.G.levels)
+
+```
+
+#### Log transformation as data is not normally dist.
+```{r}
+boxplot(log(AGA$SHLA.G.levels))
+
+```
+
+#### Normality Test
+```{r}
+shapiro.test(AGA$SHLA.G.levels)
+```
+
+#### Distribution plot
+```{r}
+ggplot(AGA, aes(x = AGA$SHLA.G.levels)) +geom_density()
+```
+
+#### Using log transformation
+```{r}
+ggplot(AGA, aes(x = log(AGA$SHLA.G.levels))) + geom_density()
+
+```
+
+#### Bar plot using ggplot2 library
+```{r}
+p <- ggplot(AGA, aes(x = POG, y = SHLA.G.levels)) + 
+  geom_bar(stat = "identity") +
+  labs(title = "Bar plot Of POG vs Levels")
+p
+
+```
+
+#### Q-Q plot (or quantile-quantile plot) draws the correlation between a given sample and the normal distribution. 
+```{r}
+ggqqplot(AGA$SHLA.G.levels)
+
+```
+
+#### QQplot after log transformation
+```{r}
+ggqqplot(log(AGA$SHLA.G.levels))
+
+```
+
+#### Scatter Plot AGA VS HLA.G.levels
+```{r}
+plot(AGA$POG,AGA$SHLA.G.levels)
+
+```
+
+#### Ploting Centile Curves using gamlass model
+```{r}
+h <- gamlss(log(SHLA.G.levels)~cs(POG), sigma.formula = ~cs(POG), 
+            nu.formula = ~cs(POG),
+            family = BCT, data = AGA)
+
+```
+
+
+```{r}
+centiles(h,xvar = log(AGA$POG), cent = c(50),col.cent=c(4), 
+         lwd.cent=c(5) , xlab = "POG", ylab = "HAG Levels", main = "Centile curve For AGA")
+
+```
+
+### Loading SGA Data
+```{r}
+SGA <- read.csv("C:/Users/DELL/Downloads/SGA1.csv")
+head(SGA)
+
+```
+
+```{r}
+SGA$Group <- "SGA"
+head(SGA)
+
+```
+
+```{r}
+names(SGA) <- c("Enrid","POG","SHLA.G.levels","Vist","Group")
+head(SGA)
+
+```
+### EDA Process
+#### Missing Values Analysis and Removing
+```{r}
+sum(is.na(SGA$SHLA.G.levels))
+SGA <- na.omit(SGA)
+
+```
+
+#### Removing outliers
+```{r}
+boxplot(SGA$SHLA.G.levels)
+boxplot(SGA$SHLA.G.levels)$out
+boxplot(SGA$SHLA.G.levels, plot=FALSE)$out  
+outliers <- boxplot(SGA$SHLA.G.levels, plot=FALSE)$out  
+SGA[which(SGA$SHLA.G.levels %in% outliers),]
+SGA <- SGA[-which(SGA$SHLA.G.levels %in% outliers),]
+
+```
+
+#### Box plot after removing outliers
+```{r}
+boxplot(SGA$SHLA.G.levels)
+
+```
+
+#### Log transformation as data is not normally dist.
+```{r}
+boxplot(log(SGA$SHLA.G.levels))
+
+```
+
+#### Normality Test
+```{r}
+shapiro.test(SGA$SHLA.G.levels)
+
+```
+
+#### Distribution plot
+```{r}
+ggplot(SGA, aes(x = SGA$SHLA.G.levels)) +geom_density()
+
+```
+
+#### Using log transformation
+```{r}
+ggplot(SGA, aes(x = log(SGA$SHLA.G.levels))) + geom_density()
+```
+
+#### Bar plot using ggplot2 lib.
+```{r}
+p <- ggplot(SGA, aes(x = POG, y = SHLA.G.levels)) + 
+  geom_bar(stat = "identity") +
+  labs(title = "Bar plot Of POG vs HLA.G.Levels")
+p
+
+```
+
+#### Q-Q plot (or quantile-quantile plot) draws the correlation between a given sample and the normal distribution. 
+```{r}
+ggqqplot(SGA$SHLA.G.levels)
+
+```
+
+#### Q-Q plot after log transformation
+```{r}
+ggqqplot(log(SGA$SHLA.G.levels))
+```
+
+#### Scatter Plot
+```{r}
+plot(SGA$POG,SGA$SHLA.G.levels)
+
+```
+
+#### Ploting Centile Curves using gamlass model
+```{r}
+h <- gamlss(log(SHLA.G.levels)~cs(POG), sigma.formula = ~cs(POG), 
+            nu.formula = ~cs(POG),
+            family = BCT, data = SGA)
+```
+
+```{r}
+centiles(h,xvar = log(SGA$POG), cent = c(50),col.cent=c(4), 
+         lwd.cent=c(5) , xlab = "POG", ylab = "HAG Levels", main = "Centile curve For SGA")
+
+```
+
+#### Combining AGA and SGA and use this data for model building
+```{r}
+pro <- rbind(AGA,SGA)
+head(pro)
+
+```
+
+```{r}
+tail(pro)
+```
+
+```{r}
+dim(pro)
+```
+
+### Mixed Model
+
+#### There is need to scale POG before building the model. 
+```{r}
+days <- scale(pro$POG)
+pro$days1 <- days[,1]
+
+```
+
+#### Building model1 without using Group 
+```{r}
+model1 <- lmer(log(SHLA.G.levels)~ days1 + I(days1^2) + 
+                I(days1^3)+ (1|Enrid), data = pro, REML = F)
+summary(model1)
+
+```
+
+#### ANOVA
+```{r}
+anova(lmer(log(SHLA.G.levels)~ days1 + I(days1^2) + 
+             I(days1^3)+ (1|Enrid), data = pro, REML = F))
+
+```
+
+#### Building model2 with Group as fixed effect
+```{r}
+model2 <- lmer(log(SHLA.G.levels)~ days1 + I(days1^2) + 
+                      I(days1^3) + Group + (1|Enrid), data = pro, REML = F)
+summary(model2)
+
+```
+
+#### ANOVA
+```{r}
+anova(lmer(log(SHLA.G.levels)~ days1 + I(days1^2) + 
+             I(days1^3) + Group + (1|Enrid), data = pro, REML = F))
+
+```
+
+#### Comparing model1 and model2 with ANOVA
+```{r}
+anova(model1,model2)
+```
+
+#### Model without POG
+```{r}
+model3 <- lmer(log(SHLA.G.levels)~ (1|Enrid), data = pro, REML = F)
+
+```
+
+```{r}
+summary(model3)
+```
